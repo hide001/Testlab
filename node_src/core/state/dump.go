@@ -167,18 +167,14 @@ func (s *StateDB) DumpToCollector(c DumpCollector, conf *DumpConfig) (nextKey []
 		} else {
 			address = &addr
 		}
+		
 		obj := newObject(s, addr, data)
 		if !conf.SkipCode {
 			account.Code = obj.Code(s.db)
 		}
 		if !conf.SkipStorage {
 			account.Storage = make(map[common.Hash]string)
-			tr, err := obj.getTrie(s.db)
-			if err != nil {
-				log.Error("Failed to load storage trie", "err", err)
-				continue
-			}
-			storageIt := trie.NewIterator(tr.NodeIterator(nil))
+			storageIt := trie.NewIterator(obj.getTrie(s.db).NodeIterator(nil))
 			for storageIt.Next() {
 				_, content, _, err := rlp.Split(storageIt.Value)
 				if err != nil {

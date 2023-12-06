@@ -68,35 +68,39 @@ type EVMInterpreter struct {
 
 // NewEVMInterpreter returns a new instance of the Interpreter.
 func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
-	// If jump table was not initialised we set the default one.
-	if cfg.JumpTable == nil {
+	// We use the STOP instruction whether to see
+	// the jump table was initialised. If it was not
+	// we'll set the default jump table.
+	if cfg.JumpTable[STOP] == nil {
+		var jt JumpTable
 		switch {
-		case evm.chainRules.IsMerge:
-			cfg.JumpTable = &mergeInstructionSet
 		case evm.chainRules.IsLondon:
-			cfg.JumpTable = &londonInstructionSet
+			jt = londonInstructionSet
 		case evm.chainRules.IsBerlin:
-			cfg.JumpTable = &berlinInstructionSet
+			jt = berlinInstructionSet
 		case evm.chainRules.IsIstanbul:
-			cfg.JumpTable = &istanbulInstructionSet
+			jt = istanbulInstructionSet
 		case evm.chainRules.IsConstantinople:
-			cfg.JumpTable = &constantinopleInstructionSet
+			jt = constantinopleInstructionSet
 		case evm.chainRules.IsByzantium:
-			cfg.JumpTable = &byzantiumInstructionSet
+			jt = byzantiumInstructionSet
 		case evm.chainRules.IsEIP158:
-			cfg.JumpTable = &spuriousDragonInstructionSet
+			jt = spuriousDragonInstructionSet
 		case evm.chainRules.IsEIP150:
-			cfg.JumpTable = &tangerineWhistleInstructionSet
+			jt = tangerineWhistleInstructionSet
 		case evm.chainRules.IsHomestead:
-			cfg.JumpTable = &homesteadInstructionSet
+			jt = homesteadInstructionSet
 		default:
-			cfg.JumpTable = &frontierInstructionSet
+			jt = frontierInstructionSet
 		}
+
 		var extraEips []int
 		if len(cfg.ExtraEips) > 0 {
 			// Deep-copy jumptable to prevent modification of opcodes in other tables
 			cfg.JumpTable = copyJumpTable(cfg.JumpTable)
 		}
+
+
 		for _, eip := range cfg.ExtraEips {
 			if err := EnableEIP(eip, cfg.JumpTable); err != nil {
 				// Disable it, so caller can check if it's activated or not

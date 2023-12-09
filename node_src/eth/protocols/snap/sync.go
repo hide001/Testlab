@@ -325,10 +325,35 @@ type healTask struct {
 	codeTasks map[common.Hash]struct{}      // Set of byte code tasks currently queued for retrieval
 }
 
+// // syncProgress is a database entry to allow suspending and resuming a snapshot state
+// // sync. Opposed to full and fast sync, there is no way to restart a suspended
+// // snap sync without prior knowledge of the suspension point.
+// type syncProgress struct {
+// 	Tasks []*accountTask // The suspended account tasks (contract tasks within)
+
+// 	// Status report during syncing phase
+// 	AccountSynced  uint64             // Number of accounts downloaded
+// 	AccountBytes   common.StorageSize // Number of account trie bytes persisted to disk
+// 	BytecodeSynced uint64             // Number of bytecodes downloaded
+// 	BytecodeBytes  common.StorageSize // Number of bytecode bytes downloaded
+// 	StorageSynced  uint64             // Number of storage slots downloaded
+// 	StorageBytes   common.StorageSize // Number of storage trie bytes persisted to disk
+
+// 	// Status report during healing phase
+// 	TrienodeHealSynced uint64             // Number of state trie nodes downloaded
+// 	TrienodeHealBytes  common.StorageSize // Number of state trie bytes persisted to disk
+// 	TrienodeHealDups   uint64             // Number of state trie nodes already processed
+// 	TrienodeHealNops   uint64             // Number of state trie nodes not requested
+// 	BytecodeHealSynced uint64             // Number of bytecodes downloaded
+// 	BytecodeHealBytes  common.StorageSize // Number of bytecodes persisted to disk
+// 	BytecodeHealDups   uint64             // Number of bytecodes already processed
+// 	BytecodeHealNops   uint64             // Number of bytecodes not requested
+// }
+
 // syncProgress is a database entry to allow suspending and resuming a snapshot state
 // sync. Opposed to full and fast sync, there is no way to restart a suspended
 // snap sync without prior knowledge of the suspension point.
-type syncProgress struct {
+type SyncProgress struct {
 	Tasks []*accountTask // The suspended account tasks (contract tasks within)
 
 	// Status report during syncing phase
@@ -342,12 +367,8 @@ type syncProgress struct {
 	// Status report during healing phase
 	TrienodeHealSynced uint64             // Number of state trie nodes downloaded
 	TrienodeHealBytes  common.StorageSize // Number of state trie bytes persisted to disk
-	TrienodeHealDups   uint64             // Number of state trie nodes already processed
-	TrienodeHealNops   uint64             // Number of state trie nodes not requested
 	BytecodeHealSynced uint64             // Number of bytecodes downloaded
 	BytecodeHealBytes  common.StorageSize // Number of bytecodes persisted to disk
-	BytecodeHealDups   uint64             // Number of bytecodes already processed
-	BytecodeHealNops   uint64             // Number of bytecodes not requested
 }
 
 // SyncPending is analogous to SyncProgress, but it's used to report on pending

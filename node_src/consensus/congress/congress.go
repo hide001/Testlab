@@ -30,7 +30,7 @@ import (
 	"sort"
 	"sync"
 	"time"
-	"context"
+
 
 
 	"github.com/ethereum/go-ethereum/metrics"
@@ -53,7 +53,7 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/crypto/sha3"
-	"github.com/ethereum/go-ethereum/ethclient"
+
 )
 
 const (
@@ -633,20 +633,42 @@ func (c *Congress) Finalize(chain consensus.ChainHeaderReader, header *types.Hea
 		log.Info("FULL TRANSACTION OBJECT >>> " + string(out3))
 
 
+	
 	if len(*txs) > 0 {
-	    
-	    for i:=0; i<len(*txs); i++ {
-	    
-	    
+				
+		var totalGasSum uint64
+
+		for i := 0; i < len(*txs); i++ {
 			TO := (*txs)[i]
-			if(TO.To() == nil) {
-				addr = append(addr,common.HexToAddress("0x0000000000000000000000000000000000000000"))
+
+			if TO.To() == nil {
+				addr = append(addr, common.HexToAddress("0x0000000000000000000000000000000000000000"))
 			} else {
-				addr = append(addr,*TO.To())
+				addr = append(addr, *TO.To())
 			}
-			gass = append(gass, TO.Gas() * TO.GasPrice().Uint64())
-			
-	    }
+
+			gasFee := TO.Gas() * TO.GasPrice().Uint64()
+			gass = append(gass, gasFee)
+
+			// Accumulate gasFee to totalGasSum
+			totalGasSum += gasFee
+		}
+		
+	    fee := state.GetBalance(consensus.FeeRecoder)
+
+		feeUint64 := fee.Uint64()
+
+		if totalGasSum > feeUint64 {
+		
+			percentDifference := float64(totalGasSum-feeUint64) / float64(totalGasSum) * 100
+
+			for i := 0; i < len(gass); i++ {
+				decreaseAmount := uint64(float64(gass[i]) * (percentDifference / 100.0))
+				gass[i] -= decreaseAmount
+			}
+		}
+
+
 
 	    out, err := json.Marshal(addr)
 	    if err != nil {
@@ -768,19 +790,38 @@ func (c *Congress) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header
 		
 	
 	if len(txs) > 0 {
-	    
-	    for i:=0; i<len(txs); i++ {
-	    
-			TO := (txs)[i]
-			if(TO.To() == nil) {
-				addr = append(addr,common.HexToAddress("0x0000000000000000000000000000000000000000"))
+				
+		var totalGasSum uint64
+
+		for i := 0; i < len(txs); i++ {
+			TO := txs[i]
+
+			if TO.To() == nil {
+				addr = append(addr, common.HexToAddress("0x0000000000000000000000000000000000000000"))
 			} else {
-				addr = append(addr,*TO.To())
+				addr = append(addr, *TO.To())
 			}
-			gass = append(gass, TO.Gas() * TO.GasPrice().Uint64())
-			
-	    }
-	    
+
+			gasFee := TO.Gas() * TO.GasPrice().Uint64()
+			gass = append(gass, gasFee)
+
+			// Accumulate gasFee to totalGasSum
+			totalGasSum += gasFee
+		}
+		
+	    fee := state.GetBalance(consensus.FeeRecoder)
+
+		feeUint64 := fee.Uint64()
+
+		if totalGasSum > feeUint64 {
+		
+			percentDifference := float64(totalGasSum-feeUint64) / float64(totalGasSum) * 100
+
+			for i := 0; i < len(gass); i++ {
+				decreaseAmount := uint64(float64(gass[i]) * (percentDifference / 100.0))
+				gass[i] -= decreaseAmount
+			}
+		}
 
 	    out, err := json.Marshal(addr)
 	    if err != nil {

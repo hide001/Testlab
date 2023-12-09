@@ -204,7 +204,6 @@ func (s *stateObject) GetCommittedState(db Database, key common.Hash) common.Has
 		enc []byte
 		err error
 	)
-	readStart := time.Now()
 	
 	if s.db.snap != nil {
 		

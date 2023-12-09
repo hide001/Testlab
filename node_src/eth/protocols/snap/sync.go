@@ -350,6 +350,13 @@ type syncProgress struct {
 	BytecodeHealNops   uint64             // Number of bytecodes not requested
 }
 
+// SyncPending is analogous to SyncProgress, but it's used to report on pending
+// ephemeral sync progress that doesn't get persisted into the database.
+type SyncPending struct {
+	TrienodeHeal uint64 // Number of state trie nodes pending
+	BytecodeHeal uint64 // Number of bytecodes pending
+}
+
 // SyncPeer abstracts out the methods required for a peer to be synced against
 // with the goal of allowing the construction of mock peers without the full
 // blown networking.

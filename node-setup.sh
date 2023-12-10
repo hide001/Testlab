@@ -75,7 +75,6 @@ task6(){
   # do make all TASK 6
   echo -e "\n${ORANGE}TASK: ${GREEN}[Building Backend]${NC}\n"
   cd node_src
-  go get github.com/ethereum/go-ethereum/common/lru
   make all
   echo -e "\n${GREEN}[TASK 6 PASSED]${NC}\n"
 }
